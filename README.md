@@ -21,13 +21,17 @@ In the list of files, there is a file called `exemple.env`. You will have to mod
 
 ### Set up the ShareX configuration file (Optional only if you want to use ShareX with it)
 
-Vous aurez besoin de changer la configuration du fichier `ShareX_Conf.sxcu`.
+You will need to change the configuration of the `ShareX_Conf.sxcu` file.
 
 1. Replace `https://www.exemple.com` with your own host name on lines `4` and `9`.
 2. Replace `YOUR_SECRET` with the secret key you previously configured in the `.env` file.
 3. Replace the `Name` value if you want, you can put whatever you want 😉
 
 If you have ShareX installed on your computer you can run this file with ShareX and it will configure the server!
+
+### Change the default 404 (Not found) image (Optional)
+
+***You can change the 404 image very easily, just change the image `404.png` in the main directory! If you change the file extension don't forget to change it in the `server.js` code.***
 
 
       
