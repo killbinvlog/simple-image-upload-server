@@ -19,6 +19,15 @@ In the list of files, there is a file called `exemple.env`. You will have to mod
 
 **Once you are done, you need to rename the `example.env` file to `.env` so that it is recognizable in the code.**
 
+### Change the default 404 (Not found) image (Optional)
+
+You can change the 404 image very easily, just change the image `404.png` in the main directory! If you change the file extension don't forget to change it in the `server.js` code.
+
+### Start the server
+
+1. If this is the first time you run it, install the dependencies via npm with the command `npm install`.
+2. Start the server using the command `npm start` now you don't have to reinstall the dependencies.
+
 ### Set up the ShareX configuration file (Optional only if you want to use ShareX with it)
 
 You will need to change the configuration of the `ShareX_Conf.sxcu` file.
@@ -28,10 +37,6 @@ You will need to change the configuration of the `ShareX_Conf.sxcu` file.
 3. Replace the `Name` value if you want, you can put whatever you want 😉
 
 If you have ShareX installed on your computer you can run this file with ShareX and it will configure the server!
-
-### Change the default 404 (Not found) image (Optional)
-
-***You can change the 404 image very easily, just change the image `404.png` in the main directory! If you change the file extension don't forget to change it in the `server.js` code.***
 
 
       
