@@ -58,7 +58,7 @@ require('./mongodb/mongoose').init().then(() => {
     });
 
     app.post('/upload/image', (req, res, next) => {
-        req.addressIp = ipaddr.process(req.headers['cf-connecting-ip'] || req.ip);
+        req.addressIp = ipaddr.process(req.ip);
         const bearerHeader = req.headers['authorization'];
         if (bearerHeader) {
             const bearer = bearerHeader.split(' ');
