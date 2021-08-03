@@ -19,9 +19,9 @@ In the list of files, there is a file called `exemple.env`. You will have to mod
 
 **Once you are done, you need to rename the `example.env` file to `.env` so that it is recognizable in the code.**
 
-### Change the default 404 (Not found) image (Optional)
+### Change the default configuration (Optional)
 
-You can change the 404 image very easily, just change the image `404.png` in the main directory! If you change the file extension don't forget to change it in the `server.js` code.
+You can change the default image upload server configuration in the `config.js` file, I tried to explain each of the options as a comment in the file 😉
 
 ### Start the server
 

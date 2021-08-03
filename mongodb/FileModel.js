@@ -32,4 +32,4 @@ const Schema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Upload', Schema);
+module.exports = mongoose.model('Image', Schema);

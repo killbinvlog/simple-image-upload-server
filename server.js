@@ -1,5 +1,7 @@
 require('dotenv').config({ path: '.env' });
 
+const config = require('./config');
+
 const fileModel = require('./mongodb/FileModel');
 
 const express = require('express');
@@ -14,19 +16,18 @@ const temp = new Map();
 
 function generateFileHash(fileBuffer) {
     return new Promise((resolve, reject) => {
-        let shasum = crypto.createHash('md5');
+        let shasum = crypto.createHash(config.fileHash.algorithm);
         try {
             shasum.update(fileBuffer);
-            const hash = shasum.digest('hex');
+            const hash = shasum.digest(config.fileHash.digestMethod);
             return resolve(hash);
         } catch (error) {
-            return reject('Hash generation failed');
+            return reject(config.errorMessages.hashGenerationFailed);
         }
     });
 }
 
 const app = express();
-app.enable('trust proxy');
 
 require('./mongodb/mongoose').init().then(() => {
     setInterval(() => {
@@ -52,7 +53,7 @@ require('./mongodb/mongoose').init().then(() => {
             if (file.mimetype.startsWith('image/')) {
                 return cb(null, true);
             } else {
-                return cb(new Error('File format is incorrect'));
+                return cb(new Error(config.errorMessages.fileFormatIsIncorrect));
             }
         }
     });
@@ -65,26 +66,26 @@ require('./mongodb/mongoose').init().then(() => {
             const bearerToken = bearer[1];
             if (bearerToken !== process.env.API_TOKEN) {
                 console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
-                return res.status(403).json({ error: { message: 'You are not allowed to upload an image.' } });
+                return res.status(403).json({ error: { message: config.errorMessages.forbidden_invalid_token } });
             }
             next();
         } else {
             console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
-            res.status(400).json({ error: { message: 'You must specify an authentication token!' } });
+            res.status(400).json({ error: { message: config.errorMessages.forbidden_token_not_specified } });
         }
     }, upload.single('image'), async (req, res) => {
-        if (!req.file) return res.status(400).json({ error: { message: 'No file to upload' } });
+        if (!req.file) return res.status(400).json({ error: { message: config.errorMessages.noFile } });
         const file = req.file;
-        const buffer = await fs.readFileSync(`./temp/${file.filename}`);
+        const buffer = fs.readFileSync(`./temp/${file.filename}`);
         fs.unlinkSync(`./temp/${file.filename}`);
-        if (buffer.length < 1) return res.status(400).json({ error: { message: 'Your file is empty :ç' } });
+        if (buffer.length < 1) return res.status(400).json({ error: { message: config.errorMessages.emptyFile } });
         const magics = {
             jpg: [255, 216, 255],
             png: [137, 80, 78],
             gif: [71, 73, 70]
         }
         const uint8a = Uint8Array.from(buffer).slice(0, 3);
-        if (!JSON.stringify(Object.values(magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ error: { message: 'File type is incorrect' } });
+        if (!JSON.stringify(Object.values(magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ error: { message: config.errorMessages.fileTypeIncorrect } });
         generateFileHash(buffer).then(async hash => {
             const data = await fileModel.findOne({ hash: hash });
 
@@ -93,11 +94,15 @@ require('./mongodb/mongoose').init().then(() => {
                 if (typeof req.headers['expires'] === 'number') {
                     date.setMilliseconds(parseInt(date.getMilliseconds() + req.headers['expires']));
                 } else {
-                    if (!ms(req.headers['expires'])) return res.status(400).json({ error: { message: 'The expiration parameter is not valid!' } });
+                    if (!ms(req.headers['expires'])) return res.status(400).json({ error: { message: config.errorMessages.expirationHeaderInvalid } });
                     date.setMilliseconds(date.getMilliseconds() + ms(req.headers['expires']));
                 }
             } else {
-                date.setMonth(date.getMonth() + 1);
+                if (typeof config.defaultExpiration === 'number') {
+                    date.setMilliseconds(parseInt(date.getMilliseconds() + config.defaultExpiration));
+                } else {
+                    date.setMilliseconds(date.getMilliseconds() + ms(config.defaultExpiration));
+                }
             }
 
             if (data) {
@@ -137,7 +142,7 @@ require('./mongodb/mongoose').init().then(() => {
 
     function renderImage(req, res) {
         function display(data) {
-            const ip = ipaddr.process(req.headers['cf-connecting-ip'] || req.ip);
+            const ip = ipaddr.process(req.ip);
             console.log(`[Server] => Image '${data.originalname}', '${data.hash}' has been viewed by '${ip}'`);
             res.set('Content-Type', data.mimetype);
             res.send(data.file);
@@ -163,8 +168,8 @@ require('./mongodb/mongoose').init().then(() => {
                 if (data) {
                     display(data);
                 } else {
-                    const image = fs.readFileSync("./404.png");
-                    res.set('Content-Type', 'image/png');
+                    const image = fs.readFileSync(config.notFoundImage.path);
+                    res.set('Content-Type', config.notFoundImage['Content-Type']);
                     res.send(image);
                 }
             });

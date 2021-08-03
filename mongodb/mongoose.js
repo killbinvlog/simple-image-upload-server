@@ -1,17 +1,9 @@
 const mongoose = require('mongoose');
 
+const { mongooseConnectOptions } = require('../config');
+
 module.exports = {
-    init: (options = {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-        autoIndex: false,
-        poolSize: 10,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-        family: 4
-    }) => {
+    init: (options = mongooseConnectOptions) => {
         return new Promise(resolve => {
             mongoose.connect(process.env.MONGODB_URI, options);
             mongoose.Promise = global.Promise;
