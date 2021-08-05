@@ -47,7 +47,7 @@ require('./mongodb/mongoose').init().then(() => {
     const upload = multer({
         dest: 'temp',
         limits: {
-            fileSize: 20000000 // 16mb
+            fileSize: config.maxFileSize
         },
         fileFilter: (req, file, cb) => {
             if (file.mimetype.startsWith('image/')) {
