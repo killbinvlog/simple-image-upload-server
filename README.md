@@ -1,6 +1,6 @@
 # SimpleImageUploadServer
 
-I coded this simple image upload server for me at the beginning today I make it available on github, it's very basic you can add an image with a POST request and get the image with a GET request. This code stores the images on a MongoDB database. The id of the images are represented by their respective hash (hash in MD5). I have provided in the files a file recognized by ShareX which allows to configure the server with ShareX, a screen capture software (so ShareX sends the screenshots on the server).
+I coded this simple image upload server for me at the beginning today I make it available on github, it's very basic you can add an image with a POST request and get the image with a GET request. This code stores the images on a MongoDB database. The id of the images are represented by their respective hash. I have provided in the files a file recognized by ShareX which allows to configure the server with ShareX, a screen capture software (so ShareX sends the screenshots on the server).
 
 ## How to start using it?
 
