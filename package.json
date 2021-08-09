@@ -9,7 +9,6 @@
   "author": "killbinvlog",
   "license": "ISC",
   "dependencies": {
-    "crypto": "^1.0.1",
     "express": "^4.17.1",
     "ipaddr.js": "^1.9.1",
     "mongoose": "^5.12.4",
