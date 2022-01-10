@@ -16,12 +16,13 @@ const temp = new Map();
 
 function generateFileHash(fileBuffer) {
 	return new Promise((resolve, reject) => {
-		let shasum = crypto.createHash(config.fileHash.algorithm);
+		const shasum = crypto.createHash(config.fileHash.algorithm);
 		try {
 			shasum.update(fileBuffer);
 			const hash = shasum.digest(config.fileHash.digestMethod);
 			return resolve(hash);
-		} catch (error) {
+		}
+		catch {
 			return reject(config.errorMessages.hashGenerationFailed);
 		}
 	});
@@ -31,45 +32,46 @@ const app = express();
 
 require('./mongodb/mongoose').init().then(() => {
 	setInterval(() => {
-		fileModel.find({}, 'expireAt originalname hash', { maxTimeMS: (1000*60)*2 }).exec().then(res => {
-			let rm = 0;
-			res.forEach(file => {
+		fileModel.find({}, 'expireAt originalname hash', { maxTimeMS: (1000 * 60) * 2 }).exec().then(res => {
+			for (let i = 0; i < res.length; i++) {
+				const file = res[i];
 				if (file.expireAt && file.expireAt - Date.now() <= 0) {
-					fileModel.deleteOne(file, (err) => {
+					fileModel.deleteOne(file, err => {
 						if (err) console.log(err);
-						rm++;
 					});
 				}
-			});
+			}
 		});
-	}, (1000*60)*2);
+	}, (1000 * 60) * 2);
 
 	const upload = multer({
 		dest: 'temp',
 		limits: {
-			fileSize: config.maxFileSize
+			fileSize: config.maxFileSize,
 		},
 		fileFilter: (req, file, cb) => {
 			if (file.mimetype.startsWith('image/')) {
 				return cb(null, true);
-			} else {
+			}
+			else {
 				return cb(new Error(config.errorMessages.fileFormatIsIncorrect));
 			}
-		}
+		},
 	});
 
 	app.post('/upload/image', (req, res, next) => {
 		req.addressIp = ipaddr.process(req.ip);
-		const bearerHeader = req.headers['authorization'];
-		if (bearerHeader) {
-			const bearer = bearerHeader.split(' ');
-			const bearerToken = bearer[1];
-			if (bearerToken !== process.env.API_TOKEN) {
+		const basicAuthorizationHeader = req.headers['Authorization'];
+		if (basicAuthorizationHeader) {
+			const bearer = basicAuthorizationHeader.split(' ');
+			const basicToken = bearer[1];
+			if (basicToken != process.env.API_TOKEN) {
 				console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
 				return res.status(403).json({ error: { message: config.errorMessages.forbidden_invalid_token } });
 			}
 			next();
-		} else {
+		}
+		else {
 			console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
 			res.status(400).json({ error: { message: config.errorMessages.forbidden_token_not_specified } });
 		}
@@ -82,36 +84,38 @@ require('./mongodb/mongoose').init().then(() => {
 		const magics = {
 			jpg: [255, 216, 255],
 			png: [137, 80, 78],
-			gif: [71, 73, 70]
-		}
+			gif: [71, 73, 70],
+		};
 		const uint8a = Uint8Array.from(buffer).slice(0, 3);
 		if (!JSON.stringify(Object.values(magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ error: { message: config.errorMessages.fileTypeIncorrect } });
 		generateFileHash(buffer).then(async hash => {
-			const data = await fileModel.findOne({ hash: hash });
+			const fileData = await fileModel.findOne({ hash: hash });
 
-			let date = new Date();
+			const date = new Date();
 			if (req.headers['expires']) {
-				if (typeof req.headers['expires'] === 'number') {
+				if (typeof req.headers['expires'] == 'number') {
 					date.setMilliseconds(parseInt(date.getMilliseconds() + req.headers['expires']));
-				} else {
+				}
+				else {
 					if (!ms(req.headers['expires'])) return res.status(400).json({ error: { message: config.errorMessages.expirationHeaderInvalid } });
 					date.setMilliseconds(date.getMilliseconds() + ms(req.headers['expires']));
 				}
-			} else {
-				if (typeof config.defaultExpiration === 'number') {
-					date.setMilliseconds(parseInt(date.getMilliseconds() + config.defaultExpiration));
-				} else {
-					date.setMilliseconds(date.getMilliseconds() + ms(config.defaultExpiration));
-				}
+			}
+			else if (typeof config.defaultExpiration == 'number') {
+				date.setMilliseconds(parseInt(date.getMilliseconds() + config.defaultExpiration));
+			}
+			else {
+				date.setMilliseconds(date.getMilliseconds() + ms(config.defaultExpiration));
 			}
 
-			if (data) {
-				temp.set(hash, data);
-				res.status(200).json({ id: data.hash });
-				data.expireAt = date;
-				data.lastUpdatedAt = new Date();
-				data.save();
-			} else {
+			if (fileData) {
+				temp.set(hash, fileData);
+				res.status(200).json({ id: fileData.hash });
+				fileData.expireAt = date;
+				fileData.lastUpdatedAt = new Date();
+				fileData.save();
+			}
+			else {
 				const merged = Object.assign({
 					_id: mongoose.Types.ObjectId(),
 					hash: hash,
@@ -121,22 +125,22 @@ require('./mongodb/mongoose').init().then(() => {
 					lastUpdatedAt: new Date(),
 					createdAt: new Date(),
 					uploadedBy: req.addressIp,
-					expireAt: date
+					expireAt: date,
 				});
 				const upl = new fileModel(merged);
-				upl.save().then(data => {
-					temp.set(hash, data);
+				upl.save().then(newFileData => {
+					temp.set(hash, newFileData);
 					console.log(`[Server] => Image '${file.originalname}', '${hash}' has been created by '${req.addressIp}'`);
 					res.status(200).json({ id: hash });
 				});
 			}
 			setTimeout(() => {
 				temp.delete(hash);
-			}, ((1000*60)*60)*3);
+			}, ((1000 * 60) * 60) * 3);
 		}).catch(e => {
 			res.status(500).json({ error: { message: e.message } });
 		});
-	}, (err, req, res, next) => {
+	}, (err, req, res) => {
 		res.status(400).json({ error: { message: err.message } });
 	});
 
@@ -150,7 +154,7 @@ require('./mongodb/mongoose').init().then(() => {
 				temp.set(data.hash, data);
 				setTimeout(() => {
 					temp.delete(data.hash);
-				}, ((1000*60)*60)*3);
+				}, ((1000 * 60) * 60) * 3);
 			}
 			fileModel.findOne({ hash: data.hash }).then(fileData => {
 				if (!fileData) return;
@@ -163,11 +167,13 @@ require('./mongodb/mongoose').init().then(() => {
 
 		if (temp.has(hash)) {
 			display(temp.get(hash));
-		} else {
+		}
+		else {
 			fileModel.findOne({ hash: hash }).then(data => {
 				if (data) {
 					display(data);
-				} else {
+				}
+				else {
 					const image = fs.readFileSync(config.notFoundImage.path);
 					res.set('Content-Type', config.notFoundImage['Content-Type']);
 					res.send(image);

@@ -4,31 +4,31 @@ const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
 	hash: {
 		type: String,
-		required: true
+		required: true,
 	},
 	originalname: String,
 	file: {
 		type: Buffer,
-		required: true
+		required: true,
 	},
 	mimetype: {
 		type: String,
-		required: true
+		required: true,
 	},
 	lastViewedAt: {
 		type: Date,
-		default: null
+		default: null,
 	},
 	lastUpdatedAt: {
 		type: Date,
-		default: null
+		default: null,
 	},
 	createdAt: {
 		type: Date,
-		require: true
+		require: true,
 	},
 	uploadedBy: String,
-	expireAt: Date
+	expireAt: Date,
 });
 
 
