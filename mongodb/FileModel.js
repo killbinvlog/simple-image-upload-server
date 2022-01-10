@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
@@ -32,4 +32,4 @@ const Schema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Image', Schema);
+export default mongoose.model('Image', Schema);

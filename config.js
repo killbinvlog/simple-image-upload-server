@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	// https://mongoosejs.com/docs/api.html#mongoose_Mongoose-connect
 	mongooseConnectOptions: {
 		useNewUrlParser: true,

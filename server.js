@@ -1,16 +1,16 @@
-require('dotenv').config({ path: '.env' });
+import dotenv from 'dotenv';
+import config from './config.js';
+import fileModel from './mongodb/FileModel.js';
+import express from 'express';
+import mongoose from 'mongoose';
+import fs from 'node:fs';
+import ipaddr from 'ipaddr.js';
+import ms from 'ms';
+import crypto from 'node:crypto';
+import multer from 'multer';
+import mongooseConnection from './mongodb/mongoose.js';
 
-const config = require('./config');
-
-const fileModel = require('./mongodb/FileModel');
-
-const express = require('express');
-const mongoose = require('mongoose');
-const fs = require('fs');
-const ipaddr = require('ipaddr.js');
-const ms = require('ms');
-const crypto = require('crypto');
-const multer = require('multer');
+dotenv.config({ path: '.env' });
 
 const temp = new Map();
 
@@ -30,7 +30,7 @@ function generateFileHash(fileBuffer) {
 
 const app = express();
 
-require('./mongodb/mongoose').init().then(() => {
+mongooseConnection.init().then(() => {
 	setInterval(() => {
 		fileModel.find({}, 'expireAt originalname hash', { maxTimeMS: (1000 * 60) * 2 }).exec().then(res => {
 			for (let i = 0; i < res.length; i++) {
@@ -61,10 +61,9 @@ require('./mongodb/mongoose').init().then(() => {
 
 	app.post('/upload/image', (req, res, next) => {
 		req.addressIp = ipaddr.process(req.ip);
-		const basicAuthorizationHeader = req.headers['Authorization'];
+		const basicAuthorizationHeader = req.headers['authorization'];
 		if (basicAuthorizationHeader) {
-			const bearer = basicAuthorizationHeader.split(' ');
-			const basicToken = bearer[1];
+			const basicToken = basicAuthorizationHeader.split(' ')[1];
 			if (basicToken != process.env.API_TOKEN) {
 				console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
 				return res.status(403).json({ error: { message: config.errorMessages.forbidden_invalid_token } });

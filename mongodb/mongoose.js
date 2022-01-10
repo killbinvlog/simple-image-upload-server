@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import config from '../config.js';
+const { mongooseConnectOptions } = config;
 
-const { mongooseConnectOptions } = require('../config');
-
-module.exports = {
+export default {
 	init: (options = mongooseConnectOptions) => {
 		return new Promise(resolve => {
 			mongoose.connect(process.env.MONGODB_URI, options);
