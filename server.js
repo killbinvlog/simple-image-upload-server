@@ -95,7 +95,7 @@ mongooseConnection.init().then(() => {
 				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
 				return res.send(not_found_image);
 			}
-			console.log(`[Server] "${req.ipAddress.toString()}" requested to view "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
+			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
 			res.setHeader('Content-Type', imageFileData.file_mime_type);
 			res.send(imageFileData.file_buffer);
 
