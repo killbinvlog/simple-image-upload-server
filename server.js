@@ -110,11 +110,11 @@ mongooseConnection.init().then(() => {
 	});
 
 	app.get('/:id', (req, res) => {
-		function handle(imageFileData) {
+		function handle(imageFileData, fromCache = false) {
 			res.set('Content-Type', imageFileData.file_mime_type);
 			res.send(imageFileData.file_buffer);
 
-			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
+			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}")`);
 
 			imageFileData.views++;
 			imageFileData.last_viewed_by = req.ipAddress.toString();
@@ -123,7 +123,7 @@ mongooseConnection.init().then(() => {
 		}
 
 		const cachedImageFileData = imgCache.get(req.params.id);
-		if (cachedImageFileData) return handle(cachedImageFileData);
+		if (cachedImageFileData) return handle(cachedImageFileData, true);
 
 		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
 			if (!imageFileData) {
