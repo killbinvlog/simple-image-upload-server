@@ -93,7 +93,7 @@ mongooseConnection.init().then(() => {
 		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
 			if (!imageFileData) {
 				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
-				return res.send(not_found_image);
+				return res.status(404).send(not_found_image);
 			}
 			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
 			res.setHeader('Content-Type', imageFileData.file_mime_type);
