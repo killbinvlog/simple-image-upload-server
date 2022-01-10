@@ -93,6 +93,7 @@ mongooseConnection.init().then(() => {
 				newFile.save().then(newImageFileData => {
 					imgCache.set(newImageFileData.public_id, newImageFileData);
 					const handleDelete = () => {
+						newImageFileData.save().catch(console.error);
 						imgCache.delete(newImageFileData.public_id);
 					};
 					setTimeout(handleDelete, 15 * 60 * 1000);
@@ -119,7 +120,6 @@ mongooseConnection.init().then(() => {
 			imageFileData.views++;
 			imageFileData.last_viewed_by = req.ipAddress.toString();
 			imageFileData.last_viewed_at = Date.now();
-			imageFileData.save().catch(console.error);
 		}
 
 		const cachedImageFileData = imgCache.get(req.params.id);
@@ -132,6 +132,7 @@ mongooseConnection.init().then(() => {
 			}
 			imgCache.set(imageFileData.public_id, imageFileData);
 			const handleDelete = () => {
+				imageFileData.save().catch(console.error);
 				imgCache.delete(imageFileData.public_id);
 			};
 			setTimeout(handleDelete, 15 * 60 * 1000);
