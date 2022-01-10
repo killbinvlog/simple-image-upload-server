@@ -72,6 +72,12 @@ typings/
 .env
 .env.test
 
+# config
+config.js
+
+# not found image
+assets/images/not-found.jpg
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 

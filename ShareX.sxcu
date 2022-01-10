@@ -1,0 +1,11 @@
+{
+  "Name": "Something",
+  "DestinationType": "ImageUploader",
+  "RequestURL": "https://www.exemple.com/api/upload/image",
+  "FileFormName": "image",
+  "Headers": {
+    "Authorization": "Basic YOUR_SECRET"
+  },
+  "URL": "https://www.exemple.com/$json:data.id$",
+  "ErrorMessage": "$json:error$"
+}

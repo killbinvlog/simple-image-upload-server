@@ -1,190 +1,115 @@
 import dotenv from 'dotenv';
-import config from './config.js';
-import fileModel from './mongodb/FileModel.js';
 import express from 'express';
 import mongoose from 'mongoose';
-import fs from 'node:fs';
+import { readFileSync, unlinkSync } from 'node:fs';
 import ipaddr from 'ipaddr.js';
-import ms from 'ms';
-import crypto from 'node:crypto';
-import multer from 'multer';
-import mongooseConnection from './mongodb/mongoose.js';
+import formidable from 'formidable';
+import mongooseConnection from './database/mongodbConnection.js';
+import FileModel from './database/models/FileModel.js';
+import config from './config.js';
 
 dotenv.config({ path: '.env' });
 
-const temp = new Map();
-
-function generateFileHash(fileBuffer) {
-	return new Promise((resolve, reject) => {
-		const shasum = crypto.createHash(config.fileHash.algorithm);
-		try {
-			shasum.update(fileBuffer);
-			const hash = shasum.digest(config.fileHash.digestMethod);
-			return resolve(hash);
-		}
-		catch {
-			return reject(config.errorMessages.hashGenerationFailed);
-		}
-	});
-}
-
-const app = express();
-
 mongooseConnection.init().then(() => {
-	setInterval(() => {
-		fileModel.find({}, 'expireAt originalname hash', { maxTimeMS: (1000 * 60) * 2 }).exec().then(res => {
-			for (let i = 0; i < res.length; i++) {
-				const file = res[i];
-				if (file.expireAt && file.expireAt - Date.now() <= 0) {
-					fileModel.deleteOne(file, err => {
-						if (err) console.log(err);
-					});
-				}
-			}
-		});
-	}, (1000 * 60) * 2);
+	console.log('[MongoDB] Database connected successfully.');
 
-	const upload = multer({
-		dest: 'temp',
-		limits: {
-			fileSize: config.maxFileSize,
-		},
-		fileFilter: (req, file, cb) => {
-			if (file.mimetype.startsWith('image/')) {
-				return cb(null, true);
-			}
-			else {
-				return cb(new Error(config.errorMessages.fileFormatIsIncorrect));
-			}
-		},
+	const not_found_image = readFileSync(config.image_uploader.notFoundImage.image_file_path);
+
+	const app = express();
+
+	app.use((req, res, next) => {
+		req.ipAddress = ipaddr.process(req.socket.remoteAddress);
+		console.log(`[Server] "${req.ipAddress.toString()}" requested "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})"`);
+		next();
 	});
 
-	app.post('/upload/image', (req, res, next) => {
-		req.addressIp = ipaddr.process(req.ip);
+	const basicAuthMiddleware = (req, res, next) => {
 		const basicAuthorizationHeader = req.headers['authorization'];
 		if (basicAuthorizationHeader) {
-			const basicToken = basicAuthorizationHeader.split(' ')[1];
+			const basicAuthorizationHeaderParts = basicAuthorizationHeader.split(' ');
+			const basicToken = basicAuthorizationHeaderParts[1] || null;
 			if (basicToken != process.env.API_TOKEN) {
-				console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
-				return res.status(403).json({ error: { message: config.errorMessages.forbidden_invalid_token } });
+				console.log(`[Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" with a invalid authorization.`);
+				return res.status(403).json({ success: false, error: 'Invalid token.' });
 			}
 			next();
 		}
 		else {
-			console.log(`[Authentication] => Access denied for a request from the ip '${req.addressIp}'`);
-			res.status(400).json({ error: { message: config.errorMessages.forbidden_token_not_specified } });
+			console.log(`[Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" without authorization.`);
+			res.status(400).json({ success: false, error: 'Authorization header is missing.' });
 		}
-	}, upload.single('image'), async (req, res) => {
-		if (!req.file) return res.status(400).json({ error: { message: config.errorMessages.noFile } });
-		const file = req.file;
-		const buffer = fs.readFileSync(`./temp/${file.filename}`);
-		fs.unlinkSync(`./temp/${file.filename}`);
-		if (buffer.length < 1) return res.status(400).json({ error: { message: config.errorMessages.emptyFile } });
-		const magics = {
-			jpg: [255, 216, 255],
-			png: [137, 80, 78],
-			gif: [71, 73, 70],
-		};
-		const uint8a = Uint8Array.from(buffer).slice(0, 3);
-		if (!JSON.stringify(Object.values(magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ error: { message: config.errorMessages.fileTypeIncorrect } });
-		generateFileHash(buffer).then(async hash => {
-			const fileData = await fileModel.findOne({ hash: hash });
+	};
 
-			const date = new Date();
-			if (req.headers['expires']) {
-				if (typeof req.headers['expires'] == 'number') {
-					date.setMilliseconds(parseInt(date.getMilliseconds() + req.headers['expires']));
-				}
-				else {
-					if (!ms(req.headers['expires'])) return res.status(400).json({ error: { message: config.errorMessages.expirationHeaderInvalid } });
-					date.setMilliseconds(date.getMilliseconds() + ms(req.headers['expires']));
-				}
-			}
-			else if (typeof config.defaultExpiration == 'number') {
-				date.setMilliseconds(parseInt(date.getMilliseconds() + config.defaultExpiration));
-			}
-			else {
-				date.setMilliseconds(date.getMilliseconds() + ms(config.defaultExpiration));
-			}
+	const form = formidable({
+		allowEmptyFiles: false,
+		maxFileSize: config.image_uploader.max_file_size_mb,
+		maxFields: 1,
+		maxFieldsSize: config.image_uploader.max_file_size_mb,
+		hashAlgorithm: 'sha512',
+		multiples: false,
+		filter: ({ mimetype }) => mimetype && config.image_uploader.authorized_mime_types.includes(mimetype),
+	});
 
-			if (fileData) {
-				temp.set(hash, fileData);
-				res.status(200).json({ id: fileData.hash });
-				fileData.expireAt = date;
-				fileData.lastUpdatedAt = new Date();
-				fileData.save();
-			}
-			else {
-				const merged = Object.assign({
+	app.post('/api/upload/image', basicAuthMiddleware, (req, res) => {
+		form.parse(req, (err, fields, files) => {
+			if (err) return res.status(400).json({ error: err.message });
+			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded.' });
+			const file = files.image[0];
+
+			const file_buffer = readFileSync(file.filepath);
+			unlinkSync(file.filepath);
+
+			FileModel.findOne({ file_hash: file.hash }).exec().then(fileData => {
+				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id } });
+
+				const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
+				if (!JSON.stringify(Object.values(config.image_uploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
+
+				const newFile = new FileModel({
 					_id: mongoose.Types.ObjectId(),
-					hash: hash,
-					originalname: file.originalname,
-					file: buffer,
-					mimetype: file.mimetype,
-					lastUpdatedAt: new Date(),
-					createdAt: new Date(),
-					uploadedBy: req.addressIp,
-					expireAt: date,
+					file_hash: file.hash,
+					file_buffer: file_buffer,
+					file_size: file.size,
+					file_original_name: file.originalFilename,
+					file_mime_type: file.mimetype,
+					uploaded_by: req.ipAddress.toString(),
 				});
-				const upl = new fileModel(merged);
-				upl.save().then(newFileData => {
-					temp.set(hash, newFileData);
-					console.log(`[Server] => Image '${file.originalname}', '${hash}' has been created by '${req.addressIp}'`);
-					res.status(200).json({ id: hash });
+
+				newFile.save().then(newImageFileData => {
+					console.log(`[Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes)`);
+					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id } });
+				}).catch(err => {
+					console.error(err);
+					return res.status(500).json({ success: false, error: 'Internal server error.' });
 				});
-			}
-			setTimeout(() => {
-				temp.delete(hash);
-			}, ((1000 * 60) * 60) * 3);
-		}).catch(e => {
-			res.status(500).json({ error: { message: e.message } });
+			}).catch(err => {
+				console.error(err);
+				return res.status(500).json({ success: false, error: 'Internal server error.' });
+			});
 		});
-	}, (err, req, res) => {
-		res.status(400).json({ error: { message: err.message } });
 	});
 
-	function renderImage(req, res) {
-		function display(data) {
-			const ip = ipaddr.process(req.ip);
-			console.log(`[Server] => Image '${data.originalname}', '${data.hash}' has been viewed by '${ip}'`);
-			res.set('Content-Type', data.mimetype);
-			res.send(data.file);
-			if (!temp.has(data.hash)) {
-				temp.set(data.hash, data);
-				setTimeout(() => {
-					temp.delete(data.hash);
-				}, ((1000 * 60) * 60) * 3);
+	app.get('/:id', (req, res) => {
+		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
+			if (!imageFileData) {
+				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
+				return res.send(not_found_image);
 			}
-			fileModel.findOne({ hash: data.hash }).then(fileData => {
-				if (!fileData) return;
-				fileData.lastViewedAt = new Date();
-				fileData.save();
-			});
-		}
+			console.log(`[Server] "${req.ipAddress.toString()}" requested to view "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
+			res.setHeader('Content-Type', imageFileData.file_mime_type);
+			res.send(imageFileData.file_buffer);
 
-		const hash = req.params.hash;
-
-		if (temp.has(hash)) {
-			display(temp.get(hash));
-		}
-		else {
-			fileModel.findOne({ hash: hash }).then(data => {
-				if (data) {
-					display(data);
-				}
-				else {
-					const image = fs.readFileSync(config.notFoundImage.path);
-					res.set('Content-Type', config.notFoundImage['Content-Type']);
-					res.send(image);
-				}
-			});
-		}
-	}
-
-	app.get('/view/:hash', renderImage);
-	app.get('/v/:hash', renderImage);
-
-	app.listen(process.env.PORT, () => {
-		console.log(`[Server] => Server is running on port ${process.env.PORT}`);
+			imageFileData.views++;
+			imageFileData.last_viewed_by = req.ipAddress.toString();
+			imageFileData.last_viewed_at = Date.now();
+			imageFileData.save().catch(console.error);
+		}).catch(err => {
+			console.error(err);
+			return res.status(500).json({ success: false, error: 'Internal server error.' });
+		});
 	});
-});
+
+	app.listen(process.env.SERVER_PORT, process.env.SERVER_HOSTNAME, () => {
+		console.log(`[Server] Server is running on "${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}"`);
+	});
+}).catch(console.error);
