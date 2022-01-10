@@ -11,6 +11,8 @@ import config from './config.js';
 
 dotenv.config({ path: '.env' });
 
+const imgCache = new Map();
+
 mongooseConnection.init().then(() => {
 	console.log('[MongoDB] Database connected successfully.');
 
@@ -89,6 +91,11 @@ mongooseConnection.init().then(() => {
 				});
 
 				newFile.save().then(newImageFileData => {
+					imgCache.set(newImageFileData.public_id, newImageFileData);
+					const handleDelete = () => {
+						imgCache.delete(newImageFileData.public_id);
+					};
+					setTimeout(handleDelete, 15 * 60 * 1000);
 					console.log(`[Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes)`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id } });
 				}).catch(err => {
@@ -103,19 +110,32 @@ mongooseConnection.init().then(() => {
 	});
 
 	app.get('/:id', (req, res) => {
-		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
-			if (!imageFileData) {
-				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
-				return res.status(404).send(not_found_image);
-			}
-			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
-			res.setHeader('Content-Type', imageFileData.file_mime_type);
+		function handle(imageFileData) {
+			res.set('Content-Type', imageFileData.file_mime_type);
 			res.send(imageFileData.file_buffer);
+
+			console.log(`[Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})"`);
 
 			imageFileData.views++;
 			imageFileData.last_viewed_by = req.ipAddress.toString();
 			imageFileData.last_viewed_at = Date.now();
 			imageFileData.save().catch(console.error);
+		}
+
+		const cachedImageFileData = imgCache.get(req.params.id);
+		if (cachedImageFileData) return handle(cachedImageFileData);
+
+		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
+			if (!imageFileData) {
+				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
+				return res.status(404).send(not_found_image);
+			}
+			imgCache.set(imageFileData.public_id, imageFileData);
+			const handleDelete = () => {
+				imgCache.delete(imageFileData.public_id);
+			};
+			setTimeout(handleDelete, 15 * 60 * 1000);
+			handle(imageFileData);
 		}).catch(err => {
 			console.error(err);
 			return res.status(500).json({ success: false, error: 'Internal server error.' });
