@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { readFileSync, unlinkSync } from 'node:fs';
 import ipaddr from 'ipaddr.js';
 import formidable from 'formidable';
+import expressRateLimit from 'express-rate-limit';
 import mongooseConnection from './database/mongodbConnection.js';
 import FileModel from './database/models/FileModel.js';
 import config from './config.js';
@@ -50,7 +51,19 @@ mongooseConnection.init().then(() => {
 		filter: ({ mimetype }) => mimetype && config.image_uploader.authorized_mime_types.includes(mimetype),
 	});
 
-	app.post('/api/upload/image', basicAuthMiddleware, (req, res) => {
+	form.setMaxListeners(0);
+
+	const uploadRateLimiter = expressRateLimit({
+		windowMs: config.image_uploader.rate_limiter.windowMs,
+		max: config.image_uploader.rate_limiter.max,
+		message: 'Too many requests.',
+		keyGenerator: req => req.ipAddress.toString(),
+		handler: (req, res) => {
+			res.status(429).json({ success: false, error: 'Too many requests.' });
+		},
+	});
+
+	app.post('/api/upload/image', uploadRateLimiter, basicAuthMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
 			if (err) return res.status(400).json({ error: err.message });
 			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded.' });

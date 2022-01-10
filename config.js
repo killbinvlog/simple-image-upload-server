@@ -4,6 +4,10 @@ export default {
 		useUnifiedTopology: true,
 	},
 	image_uploader: {
+		rate_limiter: {
+			windowMs: 1 * 60 * 1000,
+			max: 10,
+		},
 		notFoundImage: {
 			image_file_path: 'assets/images/not-found.example.jpg',
 			'Content-Type': 'image/jpeg',

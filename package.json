@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "express-rate-limit": "^6.0.5",
     "formidable": "^3.2.1",
     "ipaddr.js": "^1.9.1",
     "mongoose": "^5.12.4"
