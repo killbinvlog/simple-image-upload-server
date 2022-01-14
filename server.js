@@ -67,7 +67,7 @@ mongooseConnection.init().then(() => {
 
 	app.post('/api/upload/image', uploadRateLimiter, basicAuthMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
-			if (err) return res.status(400).json({ error: err.message });
+			if (err) return res.status(400).json({ success: false, error: err.message });
 			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded.' });
 			const file = files.image[0];
 
