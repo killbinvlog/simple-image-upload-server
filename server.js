@@ -14,7 +14,7 @@ dotenv.config({ path: '.env' });
 const imgCache = new Map();
 
 mongooseConnection.init().then(() => {
-	console.log('[MongoDB] Database connected successfully.');
+	console.log('[MongoDB] Database connected successfully');
 
 	const not_found_image = readFileSync(config.image_uploader.notFoundImage.image_file_path);
 
@@ -58,12 +58,17 @@ mongooseConnection.init().then(() => {
 	const uploadRateLimiter = expressRateLimit({
 		windowMs: config.image_uploader.rate_limiter.windowMs,
 		max: config.image_uploader.rate_limiter.max,
-		message: 'Too many requests.',
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
 			res.status(429).json({ success: false, error: 'Too many requests.' });
 		},
 	});
+
+	if (config.server.enable_check_route) {
+		app.get('/check', (req, res) => {
+			res.sendStatus(200);
+		});
+	}
 
 	app.post('/api/upload/image', uploadRateLimiter, basicAuthMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
@@ -75,7 +80,7 @@ mongooseConnection.init().then(() => {
 			unlinkSync(file.filepath);
 
 			FileModel.findOne({ file_hash: file.hash }).exec().then(fileData => {
-				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id } });
+				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id, id_with_extension: `${fileData.public_id}.${config.image_uploader.mime_types_extensions[fileData.file_mime_type]}` } });
 
 				const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
 				if (!JSON.stringify(Object.values(config.image_uploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
@@ -98,7 +103,7 @@ mongooseConnection.init().then(() => {
 					};
 					setTimeout(handleDelete, 15 * 60 * 1000);
 					console.log(`[Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes)`);
-					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id } });
+					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.image_uploader.mime_types_extensions[file.mimetype]}` } });
 				}).catch(err => {
 					console.error(err);
 					return res.status(500).json({ success: false, error: 'Internal server error.' });
@@ -111,6 +116,9 @@ mongooseConnection.init().then(() => {
 	});
 
 	app.get('/:id', (req, res) => {
+		let id = req.params.id;
+		if (id.split('.').length > 0) id = id.split('.')[0];
+
 		function handle(imageFileData, fromCache = false) {
 			res.set('Content-Type', imageFileData.file_mime_type);
 			res.send(imageFileData.file_buffer);
@@ -122,10 +130,10 @@ mongooseConnection.init().then(() => {
 			imageFileData.last_viewed_at = Date.now();
 		}
 
-		const cachedImageFileData = imgCache.get(req.params.id);
+		const cachedImageFileData = imgCache.get(id);
 		if (cachedImageFileData) return handle(cachedImageFileData, true);
 
-		FileModel.findOne({ public_id: req.params.id }).exec().then(imageFileData => {
+		FileModel.findOne({ public_id: id }).exec().then(imageFileData => {
 			if (!imageFileData) {
 				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
 				return res.status(404).send(not_found_image);

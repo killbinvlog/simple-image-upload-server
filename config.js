@@ -1,4 +1,7 @@
 export default {
+	server: {
+		enable_check_route: true,
+	},
 	mongodb_connect_options: {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
@@ -20,6 +23,11 @@ export default {
 			'image/png',
 			'image/gif',
 		],
+		mime_types_extensions: {
+			'image/jpeg': 'jpg',
+			'image/png': 'png',
+			'image/gif': 'gif',
+		},
 		magics: {
 			jpeg: [255, 216, 255],
 			png: [137, 80, 78],
