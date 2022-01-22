@@ -78,17 +78,17 @@ mongooseConnection.init().then(() => {
 	app.post('/api/upload/image', uploadRateLimiter, basicAuthMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
 			if (err) return res.status(400).json({ success: false, error: err.message });
-			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded.' });
+			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
 			const file = files.image[0];
 
 			const file_buffer = readFileSync(file.filepath);
 			unlinkSync(file.filepath);
 
+			const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
+			if (!JSON.stringify(Object.values(config.image_uploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
+
 			FileModel.findOne({ file_hash: file.hash }).exec().then(fileData => {
 				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id, id_with_extension: `${fileData.public_id}.${config.image_uploader.mime_types_extensions[fileData.file_mime_type]}` } });
-
-				const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
-				if (!JSON.stringify(Object.values(config.image_uploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
 
 				const newFile = new FileModel({
 					_id: mongoose.Types.ObjectId(),
