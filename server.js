@@ -158,5 +158,6 @@ mongooseConnection.init().then(() => {
 
 	app.listen(process.env.SERVER_PORT, process.env.SERVER_HOSTNAME, () => {
 		console.log(`[${parse_date()}] [Server] Server is running on "${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}"`);
+		if (config.server.startup_message) console.log(config.server.startup_message);
 	});
 }).catch(console.error);
