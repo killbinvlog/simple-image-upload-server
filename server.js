@@ -9,6 +9,7 @@ import mongooseConnection from './database/mongodbConnection.js';
 import FileModel from './database/models/FileModel.js';
 import parse_date from './utils/functions/parse_date.js';
 import config from './config.js';
+import contentDisposition from 'content-disposition';
 
 dotenv.config({ path: '.env' });
 
@@ -126,7 +127,7 @@ mongooseConnection.init().then(() => {
 
 		function handle(imageFileData, fromCache = false) {
 			res.set('Content-Type', imageFileData.file_mime_type);
-			res.set('Content-Disposition', `inline; filename="${imageFileData.file_original_name}"`);
+			res.set('Content-Disposition', contentDisposition.parse(`inline; filename="${imageFileData.file_original_name}"`));
 			res.send(imageFileData.file_buffer);
 
 			console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}", req-id: "${req.__id}")`);
