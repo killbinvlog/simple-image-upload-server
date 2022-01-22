@@ -1,6 +1,7 @@
 export default {
 	server: {
 		enable_check_route: false,
+		using_cloudflare: false,
 	},
 	mongodb_connect_options: {
 		useNewUrlParser: true,
