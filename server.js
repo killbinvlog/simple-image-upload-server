@@ -126,6 +126,7 @@ mongooseConnection.init().then(() => {
 
 		function handle(imageFileData, fromCache = false) {
 			res.set('Content-Type', imageFileData.file_mime_type);
+			res.set('Content-Disposition', `inline; filename="${imageFileData.file_original_name}"`);
 			res.send(imageFileData.file_buffer);
 
 			console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}", req-id: "${req.__id}")`);
