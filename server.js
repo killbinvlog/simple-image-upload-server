@@ -127,7 +127,7 @@ mongooseConnection.init().then(() => {
 
 		function handle(imageFileData, fromCache = false) {
 			res.set('Content-Type', imageFileData.file_mime_type);
-			console.log(contentDisposition(imageFileData.file_original_name, {
+			res.set('Content-Disposition', contentDisposition(imageFileData.file_original_name, {
 				type: 'inline',
 			}));
 			res.send(imageFileData.file_buffer);
