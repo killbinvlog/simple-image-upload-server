@@ -1,6 +1,7 @@
 export default {
 	server: {
 		enable_check_route: false,
+		disable_log_requests_on_check_route: false,
 		using_cloudflare: false,
 		startup_message: false,
 	},

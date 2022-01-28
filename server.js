@@ -27,6 +27,7 @@ mongooseConnection.init().then(() => {
 		req.__id = reqId;
 		reqId++;
 		req.ipAddress = ipaddr.process(config.server.using_cloudflare ? req.headers['cf-connecting-ip'] || req.socket.remoteAddress : req.socket.remoteAddress);
+		if (req.path.startsWith('/check') && config.server.disable_log_requests_on_check_route) return next();
 		console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" requested "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" (req-id: "${req.__id}")`);
 		next();
 	});
