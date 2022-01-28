@@ -1,7 +1,8 @@
+import { readFileSync, unlinkSync } from 'node:fs';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
-import { readFileSync, unlinkSync } from 'node:fs';
+import contentDisposition from 'content-disposition';
 import ipaddr from 'ipaddr.js';
 import formidable from 'formidable';
 import expressRateLimit from 'express-rate-limit';
@@ -9,7 +10,6 @@ import mongooseConnection from './database/mongodbConnection.js';
 import FileModel from './database/models/FileModel.js';
 import parse_date from './utils/functions/parse_date.js';
 import config from './config.js';
-import contentDisposition from 'content-disposition';
 
 dotenv.config({ path: '.env' });
 
@@ -108,7 +108,7 @@ mongooseConnection.init().then(() => {
 						if (!newImageFileData.$isDeleted()) newImageFileData.save().catch(console.error);
 						imgCache.delete(newImageFileData.public_id);
 					};
-					setTimeout(handleDelete, 15 * 60 * 1000);
+					setTimeout(handleDelete, config.image_uploader.cacheTimeMs);
 					console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.__id}")`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.image_uploader.mime_types_extensions[file.mimetype]}` } });
 				}).catch(err => {
@@ -153,7 +153,7 @@ mongooseConnection.init().then(() => {
 				if (!imageFileData.$isDeleted()) imageFileData.save().catch(console.error);
 				imgCache.delete(imageFileData.public_id);
 			};
-			setTimeout(handleDelete, 15 * 60 * 1000);
+			setTimeout(handleDelete, config.image_uploader.cacheTimeMs);
 			handle(imageFileData);
 		}).catch(err => {
 			console.error(err);

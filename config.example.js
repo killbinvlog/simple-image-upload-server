@@ -10,6 +10,7 @@ export default {
 		useUnifiedTopology: true,
 	},
 	image_uploader: {
+		cacheTimeMs: 15 * 60 * 1000,
 		rate_limiter: {
 			windowMs: 1 * 60 * 1000,
 			max: 10,
