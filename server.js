@@ -104,11 +104,10 @@ mongooseConnection.init().then(() => {
 
 				newFile.save().then(newImageFileData => {
 					imgCache.set(newImageFileData.public_id, newImageFileData);
-					const handleDelete = () => {
-						if (!newImageFileData.$isDeleted()) newImageFileData.save().catch(console.error);
+					setTimeout(() => {
+						newImageFileData.save().catch(() => null);
 						imgCache.delete(newImageFileData.public_id);
-					};
-					setTimeout(handleDelete, config.image_uploader.cacheTimeMs);
+					}, config.image_uploader.cacheTimeMs);
 					console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.id}")`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.image_uploader.mime_types_extensions[file.mimetype]}` } });
 				}).catch(err => {
@@ -149,11 +148,10 @@ mongooseConnection.init().then(() => {
 				return res.status(404).send(not_found_image);
 			}
 			imgCache.set(imageFileData.public_id, imageFileData);
-			const handleDelete = () => {
-				if (!imageFileData.$isDeleted()) imageFileData.save().catch(console.error);
+			setTimeout(() => {
+				imageFileData.save().catch(() => null);
 				imgCache.delete(imageFileData.public_id);
-			};
-			setTimeout(handleDelete, config.image_uploader.cacheTimeMs);
+			}, config.image_uploader.cacheTimeMs);
 			handle(imageFileData);
 		}).catch(err => {
 			console.error(err);

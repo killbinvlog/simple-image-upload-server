@@ -22,7 +22,6 @@ module.exports = {
 		'handle-callback-err': 'off',
 		'indent': ['error', 'tab'],
 		'keyword-spacing': 'error',
-		'max-nested-callbacks': ['error', { 'max': 4 }],
 		'max-statements-per-line': ['error', { 'max': 2 }],
 		'no-console': 'off',
 		'no-empty-function': 'error',
