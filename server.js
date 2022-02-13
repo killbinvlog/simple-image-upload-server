@@ -24,11 +24,11 @@ mongooseConnection.init().then(() => {
 
 	let reqId = 0;
 	app.use((req, res, next) => {
-		req.__id = reqId;
+		req.id = reqId;
 		reqId++;
 		req.ipAddress = ipaddr.process(config.server.using_cloudflare ? req.headers['cf-connecting-ip'] || req.socket.remoteAddress : req.socket.remoteAddress);
 		if (req.path.startsWith('/check') && config.server.disable_log_requests_on_check_route) return next();
-		console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" requested "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" (req-id: "${req.__id}")`);
+		console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" requested "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" (req-id: "${req.id}")`);
 		next();
 	});
 
@@ -38,13 +38,13 @@ mongooseConnection.init().then(() => {
 			const basicAuthorizationHeaderParts = basicAuthorizationHeader.split(' ');
 			const basicToken = basicAuthorizationHeaderParts[1] || null;
 			if (basicToken != process.env.API_TOKEN) {
-				console.log(`[${parse_date()}] [Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" with a invalid authorization (req-id: "${req.__id}")`);
+				console.log(`[${parse_date()}] [Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" with a invalid authorization (req-id: "${req.id}")`);
 				return res.status(403).json({ success: false, error: 'Invalid token.' });
 			}
 			next();
 		}
 		else {
-			console.log(`[${parse_date()}] [Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" without authorization (req-id: "${req.__id}")`);
+			console.log(`[${parse_date()}] [Server Auth] "${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" without authorization (req-id: "${req.id}")`);
 			res.status(400).json({ success: false, error: 'Authorization header is missing.' });
 		}
 	};
@@ -66,7 +66,7 @@ mongooseConnection.init().then(() => {
 		max: config.image_uploader.rate_limiter.max,
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
-			console.log(`[${parse_date()}] [Server Rate Limiter] "${req.ipAddress.toString()}" tried to access "${req.protocol + '://' + req.get('host') + req.originalUrl} (${req.method})" but get rate limited (req-id: "${req.__id}")`);
+			console.log(`[${parse_date()}] [Server Rate Limiter] "${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited (req-id: "${req.id}")`);
 			res.status(429).json({ success: false, error: 'Too many requests.' });
 		},
 	});
@@ -109,7 +109,7 @@ mongooseConnection.init().then(() => {
 						imgCache.delete(newImageFileData.public_id);
 					};
 					setTimeout(handleDelete, config.image_uploader.cacheTimeMs);
-					console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.__id}")`);
+					console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.id}")`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.image_uploader.mime_types_extensions[file.mimetype]}` } });
 				}).catch(err => {
 					console.error(err);
@@ -133,7 +133,7 @@ mongooseConnection.init().then(() => {
 			}));
 			res.send(imageFileData.file_buffer);
 
-			console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}", req-id: "${req.__id}")`);
+			console.log(`[${parse_date()}] [Server] "${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}", req-id: "${req.id}")`);
 
 			imageFileData.views++;
 			imageFileData.last_viewed_by = req.ipAddress.toString();
