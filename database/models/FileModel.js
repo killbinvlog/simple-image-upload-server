@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import generate_identifier from '../../utils/functions/generate_identifier.js';
+import generateIdentifier from '../../utils/functions/generateIdentifier.js';
 import config from '../../config.js';
 
 const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
 	public_id: {
 		type: String,
-		default: () => generate_identifier(config.image_uploader.identifiersLength),
+		default: () => generateIdentifier(config.image_uploader.identifiersLength),
 		unique: true,
 	},
 	file_hash: {
