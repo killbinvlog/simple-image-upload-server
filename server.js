@@ -19,7 +19,7 @@ const imgCache = new Map();
 mongooseConnection.init().then(() => {
 	log('MongoDB', 'Database connected successfully');
 
-	const not_found_image = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
+	const notFoundImage = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
 
 	const app = express();
 
@@ -148,7 +148,7 @@ mongooseConnection.init().then(() => {
 		FileModel.findOne({ public_id: id }).exec().then(imageFileData => {
 			if (!imageFileData) {
 				res.set('Content-Type', config.imageUploader.notFoundImage['Content-Type']);
-				return res.status(404).send(not_found_image);
+				return res.status(404).send(notFoundImage);
 			}
 			imgCache.set(imageFileData.public_id, imageFileData);
 			setTimeout(() => {
