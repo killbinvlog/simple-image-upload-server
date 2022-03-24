@@ -2,6 +2,7 @@ import { readFileSync, unlinkSync } from 'node:fs';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
 import contentDisposition from 'content-disposition';
 import ipaddr from 'ipaddr.js';
 import formidable from 'formidable';
@@ -21,6 +22,8 @@ mongooseConnection.init().then(() => {
 	const not_found_image = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
 
 	const app = express();
+
+	app.use(helmet());
 
 	let reqId = 0;
 	app.use((req, res, next) => {
