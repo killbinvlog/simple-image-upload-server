@@ -18,7 +18,7 @@ const imgCache = new Map();
 mongooseConnection.init().then(() => {
 	log('MongoDB', 'Database connected successfully');
 
-	const not_found_image = readFileSync(config.image_uploader.notFoundImage.image_file_path);
+	const not_found_image = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
 
 	const app = express();
 
@@ -26,8 +26,8 @@ mongooseConnection.init().then(() => {
 	app.use((req, res, next) => {
 		req.id = reqId;
 		reqId++;
-		req.ipAddress = ipaddr.process(config.server.using_cloudflare ? req.headers['cf-connecting-ip'] || req.socket.remoteAddress : req.socket.remoteAddress);
-		if (req.path.startsWith('/check') && config.server.disable_log_requests_on_check_route) return next();
+		req.ipAddress = ipaddr.process(config.server.usingCloudflare ? req.headers['cf-connecting-ip'] || req.socket.remoteAddress : req.socket.remoteAddress);
+		if (req.path.startsWith('/check') && config.server.disableLogRequestsOnCheckRoute) return next();
 		log('Server', `"${req.ipAddress.toString()}" requested "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" (req-id: "${req.id}")`);
 		next();
 	});
@@ -51,19 +51,19 @@ mongooseConnection.init().then(() => {
 
 	const form = formidable({
 		allowEmptyFiles: false,
-		maxFileSize: config.image_uploader.max_file_size_mb,
+		maxFileSize: config.imageUploader.maxFileSizeMb,
 		maxFields: 1,
-		maxFieldsSize: config.image_uploader.max_file_size_mb,
+		maxFieldsSize: config.imageUploader.maxFileSizeMb,
 		hashAlgorithm: 'sha512',
 		multiples: false,
-		filter: ({ mimetype }) => mimetype && config.image_uploader.authorized_mime_types.includes(mimetype),
+		filter: ({ mimetype }) => mimetype && config.imageUploader.authorizedMimeTypes.includes(mimetype),
 	});
 
 	form.setMaxListeners(0);
 
 	const uploadRateLimiter = expressRateLimit({
-		windowMs: config.image_uploader.rate_limiter.windowMs,
-		max: config.image_uploader.rate_limiter.max,
+		windowMs: config.imageUploader.rateLimiter.windowMs,
+		max: config.imageUploader.rateLimiter.max,
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
 			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited (req-id: "${req.id}")`);
@@ -71,7 +71,7 @@ mongooseConnection.init().then(() => {
 		},
 	});
 
-	if (config.server.enable_check_route) {
+	if (config.server.enableCheckRoute) {
 		app.get('/check', (req, res) => {
 			res.sendStatus(200);
 		});
@@ -87,10 +87,10 @@ mongooseConnection.init().then(() => {
 			unlinkSync(file.filepath);
 
 			const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
-			if (!JSON.stringify(Object.values(config.image_uploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
+			if (!JSON.stringify(Object.values(config.imageUploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
 
 			FileModel.findOne({ file_hash: file.hash }).exec().then(fileData => {
-				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id, id_with_extension: `${fileData.public_id}.${config.image_uploader.mime_types_extensions[fileData.file_mime_type]}` } });
+				if (fileData) return res.status(200).json({ success: true, data: { already_exists: true, id: fileData.public_id, id_with_extension: `${fileData.public_id}.${config.imageUploader.mimeTypesExtensions[fileData.file_mime_type]}` } });
 
 				const newFile = new FileModel({
 					_id: mongoose.Types.ObjectId(),
@@ -107,9 +107,9 @@ mongooseConnection.init().then(() => {
 					setTimeout(() => {
 						newImageFileData.save().catch(() => null);
 						imgCache.delete(newImageFileData.public_id);
-					}, config.image_uploader.cacheTimeMs);
+					}, config.imageUploader.cacheTimeMs);
 					log('Server', `"${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.id}")`);
-					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.image_uploader.mime_types_extensions[file.mimetype]}` } });
+					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.imageUploader.mimeTypesExtensions[file.mimetype]}` } });
 				}).catch(err => {
 					console.error(err);
 					return res.status(500).json({ success: false, error: 'Internal server error.' });
@@ -144,14 +144,14 @@ mongooseConnection.init().then(() => {
 
 		FileModel.findOne({ public_id: id }).exec().then(imageFileData => {
 			if (!imageFileData) {
-				res.set('Content-Type', config.image_uploader.notFoundImage['Content-Type']);
+				res.set('Content-Type', config.imageUploader.notFoundImage['Content-Type']);
 				return res.status(404).send(not_found_image);
 			}
 			imgCache.set(imageFileData.public_id, imageFileData);
 			setTimeout(() => {
 				imageFileData.save().catch(() => null);
 				imgCache.delete(imageFileData.public_id);
-			}, config.image_uploader.cacheTimeMs);
+			}, config.imageUploader.cacheTimeMs);
 			handle(imageFileData);
 		}).catch(err => {
 			console.error(err);
@@ -161,6 +161,6 @@ mongooseConnection.init().then(() => {
 
 	app.listen(process.env.SERVER_PORT, process.env.SERVER_HOSTNAME, () => {
 		log('Server', `Server is running on "${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}"`);
-		if (config.server.startup_message) console.log(config.server.startup_message);
+		if (config.server.startupMessage) console.log(config.server.startupMessage);
 	});
 }).catch(console.error);

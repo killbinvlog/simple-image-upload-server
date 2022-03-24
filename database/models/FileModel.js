@@ -6,7 +6,7 @@ const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
 	public_id: {
 		type: String,
-		default: () => generateIdentifier(config.image_uploader.identifiersLength),
+		default: () => generateIdentifier(config.imageUploader.identifiersLength),
 		unique: true,
 	},
 	file_hash: {
@@ -43,7 +43,7 @@ const Schema = mongoose.Schema({
 	},
 	created_at: {
 		type: Date,
-		expires: config.image_uploader.expires,
+		expires: config.imageUploader.expires,
 		default: Date.now,
 	},
 	updated_at: {

@@ -1,33 +1,33 @@
 export default {
 	server: {
-		enable_check_route: false,
-		disable_log_requests_on_check_route: false,
-		using_cloudflare: false,
-		startup_message: false,
+		enableCheckRoute: false,
+		disableLogRequestsOnCheckRoute: false,
+		usingCloudflare: false,
+		startupMessage: false,
 	},
-	mongodb_connect_options: {
+	mongodbConnectOptions: {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 	},
-	image_uploader: {
+	imageUploader: {
 		cacheTimeMs: 15 * 60 * 1000,
-		rate_limiter: {
+		rateLimiter: {
 			windowMs: 1 * 60 * 1000,
 			max: 10,
 		},
 		notFoundImage: {
-			image_file_path: 'assets/images/not-found.example.jpg',
+			imageFilePath: 'assets/images/not-found.example.jpg',
 			'Content-Type': 'image/jpeg',
 		},
 		expires: '1 year',
 		identifiersLength: 11,
-		max_file_size_mb: 16 * 1024 * 1024,
-		authorized_mime_types: [
+		maxFileSizeMb: 16 * 1024 * 1024,
+		authorizedMimeTypes: [
 			'image/jpeg',
 			'image/png',
 			'image/gif',
 		],
-		mime_types_extensions: {
+		mimeTypesExtensions: {
 			'image/jpeg': 'jpg',
 			'image/png': 'png',
 			'image/gif': 'gif',
