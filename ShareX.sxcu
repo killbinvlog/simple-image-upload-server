@@ -1,7 +1,7 @@
 {
   "Name": "Something",
   "DestinationType": "ImageUploader",
-  "RequestURL": "https://www.example.com/api/upload/image",
+  "RequestURL": "https://www.example.com/upload/image",
   "FileFormName": "image",
   "Headers": {
     "Authorization": "Basic YOUR_SECRET"
