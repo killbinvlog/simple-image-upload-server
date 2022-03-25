@@ -1,11 +1,15 @@
 {
-  "Name": "Something",
+  "Version": "13.7.0",
+  "Name": "My upload server",
   "DestinationType": "ImageUploader",
+  "RequestMethod": "POST",
   "RequestURL": "https://www.example.com/upload/image",
-  "FileFormName": "image",
   "Headers": {
     "Authorization": "Basic YOUR_SECRET"
   },
+  "Body": "MultipartFormData",
+  "FileFormName": "image",
   "URL": "https://www.example.com/$json:data.id_with_extension$",
+  "ThumbnailURL": "https://www.example.com/$json:data.id_with_extension$",
   "ErrorMessage": "$json:error$"
 }
