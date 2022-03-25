@@ -14,10 +14,10 @@ import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
 
-const imgCache = new Map();
-
 mongooseConnection.init().then(() => {
 	log('MongoDB', 'Database connected successfully');
+
+	const imgCache = new Map();
 
 	const notFoundImage = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
 
