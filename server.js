@@ -19,6 +19,14 @@ mongooseConnection.init().then(() => {
 
 	const imgCache = new Map();
 
+	function addToCache(fileData) {
+		imgCache.set(fileData.public_id, fileData);
+		setTimeout(() => {
+			fileData.save().catch(err => console.error(new Error('Error while saving image file data to database from cache', { cause: err })));
+			imgCache.delete(fileData.public_id);
+		}, config.imageUploader.cacheTimeMs);
+	}
+
 	const notFoundImage = readFileSync(config.imageUploader.notFoundImage.imageFilePath);
 
 	const app = express();
@@ -106,19 +114,15 @@ mongooseConnection.init().then(() => {
 				});
 
 				newFile.save().then(newImageFileData => {
-					imgCache.set(newImageFileData.public_id, newImageFileData);
-					setTimeout(() => {
-						newImageFileData.save().catch(() => null);
-						imgCache.delete(newImageFileData.public_id);
-					}, config.imageUploader.cacheTimeMs);
+					addToCache(newImageFileData);
 					log('Server', `"${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.id}")`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.imageUploader.mimeTypesExtensions[file.mimetype]}` } });
 				}).catch(err => {
-					console.error(err);
+					console.error(new Error('Error while saving image file data to database', { cause: err }));
 					return res.status(500).json({ success: false, error: 'Internal server error.' });
 				});
 			}).catch(err => {
-				console.error(err);
+				console.error(new Error('Error while getting image file data from database', { cause: err }));
 				return res.status(500).json({ success: false, error: 'Internal server error.' });
 			});
 		});
@@ -150,14 +154,10 @@ mongooseConnection.init().then(() => {
 				res.set('Content-Type', config.imageUploader.notFoundImage['Content-Type']);
 				return res.status(404).send(notFoundImage);
 			}
-			imgCache.set(imageFileData.public_id, imageFileData);
-			setTimeout(() => {
-				imageFileData.save().catch(() => null);
-				imgCache.delete(imageFileData.public_id);
-			}, config.imageUploader.cacheTimeMs);
+			addToCache(imageFileData);
 			handle(imageFileData);
 		}).catch(err => {
-			console.error(err);
+			console.error(new Error('Error while getting image file data from database', { cause: err }));
 			return res.status(500).json({ success: false, error: 'Internal server error.' });
 		});
 	});
@@ -166,4 +166,4 @@ mongooseConnection.init().then(() => {
 		log('Server', `Server is running on "${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}"`);
 		if (config.server.startupMessage) console.log(config.server.startupMessage);
 	});
-}).catch(console.error);
+}).catch(err => console.error(new Error('Error while initializing server', { cause: err })));
