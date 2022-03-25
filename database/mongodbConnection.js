@@ -8,9 +8,9 @@ export default {
 
 			mongoose.Promise = global.Promise;
 
-			mongoose.connection.on('error', reject);
+			mongoose.connection.once('error', reject);
 
-			mongoose.connection.on('connected', resolve);
+			mongoose.connection.once('connected', resolve);
 		});
 	},
 };
