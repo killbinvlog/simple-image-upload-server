@@ -1,4 +1,5 @@
-import { readFileSync, unlinkSync } from 'node:fs';
+import { readFileSync, unlinkSync, existsSync } from 'node:fs';
+import path from 'node:path';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -127,6 +128,9 @@ mongooseConnection.init().then(() => {
 			});
 		});
 	});
+
+	const publicPath = path.join(process.cwd(), 'public');
+	if (existsSync(publicPath)) app.use('/', express.static(publicPath));
 
 	app.get('/:id', (req, res) => {
 		let id = req.params.id;
