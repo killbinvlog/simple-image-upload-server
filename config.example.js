@@ -14,9 +14,15 @@ export default {
 	},
 	imageUploader: {
 		cacheTimeMs: 15 * 60 * 1000,
-		rateLimiter: {
-			windowMs: 1 * 60 * 1000,
-			max: 10,
+		rateLimiters: {
+			upload: {
+				windowMs: 5 * 60 * 1000,
+				max: 20,
+			},
+			view: {
+				windowMs: 10 * 60 * 1000,
+				max: 100,
+			},
 		},
 		notFoundImage: {
 			imageFilePath: 'assets/images/not-found.example.jpg',

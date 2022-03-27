@@ -74,11 +74,21 @@ connectDb().then(() => {
 	form.setMaxListeners(0);
 
 	const uploadRateLimiter = expressRateLimit({
-		windowMs: config.imageUploader.rateLimiter.windowMs,
-		max: config.imageUploader.rateLimiter.max,
+		windowMs: config.imageUploader.rateLimiters.upload.windowMs,
+		max: config.imageUploader.rateLimiters.upload.max,
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
-			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited (req-id: "${req.id}")`);
+			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited on upload rate limiter (req-id: "${req.id}")`);
+			res.status(429).json({ success: false, error: 'Too many requests.' });
+		},
+	});
+
+	const viewRateLimiter = expressRateLimit({
+		windowMs: config.imageUploader.rateLimiters.view.windowMs,
+		max: config.imageUploader.rateLimiters.view.max,
+		keyGenerator: req => req.ipAddress.toString(),
+		handler: (req, res) => {
+			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited on view rate limiter (req-id: "${req.id}")`);
 			res.status(429).json({ success: false, error: 'Too many requests.' });
 		},
 	});
@@ -132,7 +142,7 @@ connectDb().then(() => {
 	const publicPath = path.join(process.cwd(), 'public');
 	if (existsSync(publicPath)) app.use('/', express.static(publicPath));
 
-	app.get('/:id', (req, res) => {
+	app.get('/:id', viewRateLimiter, (req, res) => {
 		let id = req.params.id;
 		if (id.split('.').length > 0) id = id.split('.')[0];
 
