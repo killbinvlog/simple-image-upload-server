@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-export default function generate_identifier(length = 11) {
+export default function generateIdentifier(length = 11) {
 	let base62_chars = '0123456789';
 	base62_chars += 'abcdefghijklmnopqrstuvwxyz';
 	base62_chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
