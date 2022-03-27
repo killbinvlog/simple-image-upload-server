@@ -4,16 +4,6 @@ export default {
 		disableLogRequestsOnCheckRoute: false,
 		usingCloudflare: false,
 		startupMessage: false,
-	},
-	mongodbConnectOptions: {
-		autoIndex: false,
-		maxPoolSize: 10,
-		serverSelectionTimeoutMS: 5000,
-		socketTimeoutMS: 45000,
-		family: 4,
-	},
-	imageUploader: {
-		cacheTimeMs: 15 * 60 * 1000,
 		rateLimiters: {
 			upload: {
 				windowMs: 5 * 60 * 1000,
@@ -24,6 +14,16 @@ export default {
 				max: 100,
 			},
 		},
+	},
+	mongodbConnectOptions: {
+		autoIndex: false,
+		maxPoolSize: 10,
+		serverSelectionTimeoutMS: 5000,
+		socketTimeoutMS: 45000,
+		family: 4,
+	},
+	imageUploader: {
+		cacheTimeMs: 15 * 60 * 1000,
 		notFoundImage: {
 			imageFilePath: 'assets/images/not-found.example.jpg',
 			'Content-Type': 'image/jpeg',

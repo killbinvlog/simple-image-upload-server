@@ -74,8 +74,8 @@ connectDb().then(() => {
 	form.setMaxListeners(0);
 
 	const uploadRateLimiter = expressRateLimit({
-		windowMs: config.imageUploader.rateLimiters.upload.windowMs,
-		max: config.imageUploader.rateLimiters.upload.max,
+		windowMs: config.server.rateLimiters.upload.windowMs,
+		max: config.server.rateLimiters.upload.max,
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
 			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited on upload rate limiter (req-id: "${req.id}")`);
@@ -84,8 +84,8 @@ connectDb().then(() => {
 	});
 
 	const viewRateLimiter = expressRateLimit({
-		windowMs: config.imageUploader.rateLimiters.view.windowMs,
-		max: config.imageUploader.rateLimiters.view.max,
+		windowMs: config.server.rateLimiters.view.windowMs,
+		max: config.server.rateLimiters.view.max,
 		keyGenerator: req => req.ipAddress.toString(),
 		handler: (req, res) => {
 			log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited on view rate limiter (req-id: "${req.id}")`);
