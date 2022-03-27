@@ -8,14 +8,14 @@ import contentDisposition from 'content-disposition';
 import ipaddr from 'ipaddr.js';
 import formidable from 'formidable';
 import expressRateLimit from 'express-rate-limit';
-import mongooseConnection from './database/mongodbConnection.js';
+import connectDb from './database/connectDb.js';
 import FileModel from './database/models/FileModel.js';
 import config from './config.js';
 import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
 
-mongooseConnection.init().then(() => {
+connectDb().then(() => {
 	log('MongoDB', 'Database connected successfully');
 
 	const imgCache = new Map();
