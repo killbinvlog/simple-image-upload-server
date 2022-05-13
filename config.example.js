@@ -30,7 +30,8 @@ export default {
 		},
 		expires: '1 year',
 		identifiersLength: 11,
-		maxFileSizeMb: 16 * 1024 * 1024,
+		// You cannot create images larger than 16mb, please refer to https://www.mongodb.com/docs/manual/reference/limits/#mongodb-limit-BSON-Document-Size
+		maxFileSizeMb: 12 * 1024 * 1024,
 		authorizedMimeTypes: [
 			'image/jpeg',
 			'image/png',
