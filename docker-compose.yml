@@ -1,0 +1,13 @@
+version: "2"
+services:
+  upload-server:
+    build: .
+    ports:
+      - "5001:5001"
+  mongo:
+    image: mongo
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
