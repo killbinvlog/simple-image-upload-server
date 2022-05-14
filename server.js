@@ -18,7 +18,7 @@ import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
 
-connectDb().then(() => {
+connectDb(config.mongodbConnectOptions).then(() => {
 	log('MongoDB', 'Database connected successfully');
 
 	const imgCache = new Map();
