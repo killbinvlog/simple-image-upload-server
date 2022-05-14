@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import generateIdentifier from '../../utils/functions/generateIdentifier.js';
 import config from '../../config.js';
+import generateIdentifier from '../../utils/functions/generateIdentifier.js';
 
 const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
