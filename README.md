@@ -1,6 +1,6 @@
 # Simple image upload server
 
-Web server made with ExpressJS on NodeJS that allows the uploading, storing and getting images. It stores the images and their information with a MongoDB server. It was created to allow me to send images online easily.
+Web server made with ExpressJS on NodeJS that allows to upload, store and get images. It stores the images and their information with a MongoDB server. It was created to allow me to send images online easily.
 
 ## Table of contents
 
