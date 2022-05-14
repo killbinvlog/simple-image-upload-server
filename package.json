@@ -1,12 +1,23 @@
 {
   "name": "simple-image-upload-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "server.js",
   "type": "module",
+  "keywords": [
+    "nodejs",
+    "mongo",
+    "expressjs",
+    "mongoosejs",
+    "image-uploader"
+  ],
   "scripts": {
     "start": "node .",
     "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/killbinvlog/simple-image-upload-server.git"
   },
   "author": "killbinvlog",
   "license": "Apache-2.0",
@@ -22,5 +33,9 @@
   "devDependencies": {
     "dotenv": "16.0.1",
     "eslint": "8.15.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/killbinvlog/simple-image-upload-server/issues"
+  },
+  "homepage": "https://github.com/killbinvlog/simple-image-upload-server#readme"
 }
