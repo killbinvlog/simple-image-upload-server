@@ -38,7 +38,7 @@ connectDb().then(() => {
 	app.use((req, res, next) => {
 		req.id = reqId;
 		reqId++;
-		req.ipAddress = ipaddr.process(config.server.usingCloudflare ? req.headers['cf-connecting-ip'] || req.socket.remoteAddress : req.socket.remoteAddress);
+		req.ipAddress = ipaddr.process((config.server.usingCloudflare ? req.headers['cf-connecting-ip'] : null) ?? req.socket.remoteAddress);
 		if (req.path.startsWith('/check') && config.server.disableLogRequestsOnCheckRoute) return next();
 		log('Server', `"${req.ipAddress.toString()}" requested "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" (req-id: "${req.id}")`);
 		next();
@@ -105,10 +105,10 @@ connectDb().then(() => {
 			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
 			const file = files.image[0];
 
-			const file_buffer = readFileSync(file.filepath);
+			const fileBuffer = readFileSync(file.filepath);
 			unlinkSync(file.filepath);
 
-			const uint8a = Uint8Array.from(file_buffer).slice(0, 3);
+			const uint8a = Uint8Array.from(fileBuffer).slice(0, 3);
 			if (!JSON.stringify(Object.values(config.imageUploader.magics)).includes(JSON.stringify([uint8a[0], uint8a[1], uint8a[2]]))) return res.status(400).json({ success: false, error: 'File is not an image.' });
 
 			FileModel.findOne({ file_hash: file.hash }).exec().then(fileData => {
@@ -117,7 +117,7 @@ connectDb().then(() => {
 				const newFile = new FileModel({
 					_id: mongoose.Types.ObjectId(),
 					file_hash: file.hash,
-					file_buffer: file_buffer,
+					file_buffer: fileBuffer,
 					file_size: file.size,
 					file_original_name: file.originalFilename,
 					file_mime_type: file.mimetype,
