@@ -1,7 +1,7 @@
 {
   "name": "simple-image-upload-server",
   "version": "2.0.0",
-  "description": "",
+  "description": "Web server made with ExpressJS on NodeJS that allows the uploading, storing and getting images. It stores the images and their information with a MongoDB server. It was created to allow me to send images online easily.",
   "main": "server.js",
   "type": "module",
   "keywords": [
@@ -9,7 +9,8 @@
     "mongo",
     "expressjs",
     "mongoosejs",
-    "image-uploader"
+    "image-uploader",
+    "image-server"
   ],
   "scripts": {
     "start": "node .",
