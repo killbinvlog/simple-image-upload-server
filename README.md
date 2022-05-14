@@ -2,6 +2,20 @@
 
 Web server made with ExpressJS on NodeJS that allows the uploading, storing and getting images. It stores the images and their information with a MongoDB server. It was created to allow me to send images online easily.
 
+## Table of contents
+
+- [How to start it?](#how-to-start-it)
+  - [With Docker](#with-docker-🐳-easiest-way)
+    - [Prerequisites](#prerequisites)
+    - [Steps](#steps)
+  - [Without Docker](#without-docker)
+    - [Prerequisites](#prerequisites-1)
+    - [Steps](#steps-1)
+  - [Check if the server is running](#check-if-the-server-is-running)
+- [How to use it?](#how-to-use-it)
+  - [Configure the `ShareX.sxcu` file.](#configure-the-sharexsxcu-file)
+- [Need some help?](#need-some-help)
+
 ## How to start it?
 
 ### With Docker 🐳 (easiest way)
@@ -10,17 +24,19 @@ Web server made with ExpressJS on NodeJS that allows the uploading, storing and 
 
 - Docker installed on your host
 
-#### 1) Duplicate the `config.example.js` file and name it `config.js`.
+#### Steps
 
-#### 2) Do the same with the `example.env` file and name it `.env`.
+1. Duplicate the `config.example.js` file and name it `config.js`.
 
-#### 3) Configure the server as you want (optional but recommended).
+2. Do the same with the `example.env` file and name it `.env`.
 
-> You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
+3. Configure the server as you want (optional but recommended).
 
-#### 5) Open a terminal at the root of the project.
+   > You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
 
-#### 6) Run the command `docker compose up` in your terminal to start a MongoDB server and an instance of the image upload server.
+4. Open a terminal at the root of the project.
+
+5. Run the command `docker compose up` in your terminal to start a MongoDB server and an instance of the image upload server.
 
 ### Without Docker
 
@@ -29,21 +45,27 @@ Web server made with ExpressJS on NodeJS that allows the uploading, storing and 
 - NodeJS v16.15.0 (this is the version I use but another one could work well) with npm
 - A running MongoDB server (you can get one for free at MongoDB Atlas => https://www.mongodb.com/cloud/atlas)
 
-#### 1) Duplicate the `config.example.js` file and name it `config.js`.
+#### Steps
 
-#### 2) Do the same with the `example.env` file and name it `.env`.
+1. Duplicate the `config.example.js` file and name it `config.js`.
 
-#### 3) Modify the `MONGODB_URI` value in the `.env` file with your MongoDB connection string (more information in the file).
+2. Do the same with the `example.env` file and name it `.env`.
 
-#### 4) Configure the server as you want (optional but recommended).
+3. Modify the `MONGODB_URI` value in the `.env` file with your MongoDB connection string (more information in the file).
 
-> You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
+4. Configure the server as you want (optional but recommended).
 
-#### 5) Open a terminal at the root of the project.
+   > You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
 
-#### 6) Run the command `npm install` in your terminal to install npm packages (once this is done, you will not need to do it anymore).
+5. Open a terminal at the root of the project.
 
-#### 7) Run the command `npm start` in your terminal to start the server.
+6. Run the command `npm install` in your terminal to install npm packages (once this is done, you will not need to do it anymore).
+
+7. Run the command `npm start` in your terminal to start the server.
+
+### Check if the server is running
+
+Normally, if you have not changed the server configuration, the server runs on `http://localhost:5001` and you will see: "Cannot GET /" on the page.
 
 ## How to use it?
 
