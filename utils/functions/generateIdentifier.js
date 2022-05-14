@@ -1,22 +1,12 @@
 import crypto from 'node:crypto';
 
-export default function generateIdentifier(length = 11) {
-	let base62_chars = '0123456789';
-	base62_chars += 'abcdefghijklmnopqrstuvwxyz';
-	base62_chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
+export default function generateIdentifier(length = 11, base62_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') {
 	const bytes = crypto.randomBytes(length).toString('ascii').split('');
 	const hash = [];
 
 	for (let i = 0; i < bytes.length; i++) {
 		const byte = bytes[i];
-
-		if (byte.charCodeAt(0) < 62) {
-			hash.push(base62_chars[byte.charCodeAt(0)]);
-		}
-		else {
-			hash.push(base62_chars[byte.charCodeAt(0) % 62]);
-		}
+		hash.push(base62_chars[byte.charCodeAt(0) < 62 ? byte.charCodeAt(0) : byte.charCodeAt(0) % 62]);
 	}
 
 	return hash.join('');
