@@ -18,7 +18,7 @@ import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
 
-connectDb(config.mongodbConnectOptions).then(() => {
+connectDb(config.mongodb.connectionOptions).then(() => {
 	log('MongoDB', 'Database connected successfully');
 
 	const imgCache = new Map();
@@ -39,9 +39,9 @@ connectDb(config.mongodbConnectOptions).then(() => {
 
 	const form = formidable({
 		allowEmptyFiles: false,
-		maxFileSize: config.imageUploader.maxFileSizeMb,
+		maxFileSize: config.imageUploader.maxFileSize,
 		maxFields: 1,
-		maxFieldsSize: config.imageUploader.maxFileSizeMb,
+		maxFieldsSize: config.imageUploader.maxFileSize,
 		hashAlgorithm: 'sha512',
 		multiples: false,
 		filter: ({ mimetype }) => mimetype && config.imageUploader.authorizedMimeTypes.includes(mimetype),
@@ -55,11 +55,12 @@ connectDb(config.mongodbConnectOptions).then(() => {
 		});
 	}
 
+	const { imageUploader: { formDataFieldName } } = config;
 	app.post('/upload/image', uploadRateLimiterMiddleware, authMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
 			if (err) return res.status(400).json({ success: false, error: err.message });
-			if (!files.image || !files.image[0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
-			const file = files.image[0];
+			if (!files[formDataFieldName] || !files[formDataFieldName][0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
+			const file = files[formDataFieldName][0];
 
 			const fileBuffer = readFileSync(file.filepath);
 			unlinkSync(file.filepath);

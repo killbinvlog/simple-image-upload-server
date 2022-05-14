@@ -56,5 +56,4 @@ const Schema = mongoose.Schema({
 	},
 });
 
-
-export default mongoose.model('Image', Schema);
+export default mongoose.model('File', Schema, config.mongodb.collectionName);
