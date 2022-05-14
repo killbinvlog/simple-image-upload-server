@@ -4,9 +4,6 @@ module.exports = {
 		'node': true,
 		'es6': true,
 	},
-	'globals': {
-		'config': true,
-	},
 	'parserOptions': {
 		'sourceType': 'module',
 		'ecmaVersion': 'latest',
