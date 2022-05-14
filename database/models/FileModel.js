@@ -6,7 +6,7 @@ const Schema = mongoose.Schema({
 	_id: mongoose.Schema.Types.ObjectId,
 	public_id: {
 		type: String,
-		default: () => generateIdentifier(config.imageUploader.identifiersLength),
+		default: () => generateIdentifier(config.imageUploader.identifiers.length, config.imageUploader.identifiers.chars),
 		unique: true,
 	},
 	file_hash: {
