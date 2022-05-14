@@ -18,8 +18,6 @@ import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
 
-console.log('slt');
-
 connectDb().then(() => {
 	log('MongoDB', 'Database connected successfully');
 
