@@ -33,7 +33,7 @@ Web server made with ExpressJS on NodeJS that allows the uploading, storing and 
 
 #### 2) Do the same with the `example.env` file and name it `.env`.
 
-#### 3) Modify the MONGODB_URI in `.env` file with your MongoDB connection string (more information in the file).
+#### 3) Modify the `MONGODB_URI` value in the `.env` file with your MongoDB connection string (more information in the file).
 
 #### 4) Configure the server as you want (optional but recommended).
 
