@@ -13,6 +13,8 @@ export default {
 		rateLimiters: {
 			// Rate limiter configuration for /upload route
 			upload: {
+				// Enable the rate limiter
+				enabled: true,
 				// The time in milliseconds before resetting the counter
 				windowMs: 5 * 60 * 1000,
 				// The maximum number of requests allowed in the windowMs
@@ -21,6 +23,8 @@ export default {
 			},
 			// Rate limiter configuration for /:id route
 			view: {
+				// Enable the rate limiter
+				enabled: true,
 				// The time in milliseconds before resetting the counter
 				windowMs: 10 * 60 * 1000,
 				// The maximum number of requests allowed in the windowMs

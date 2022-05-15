@@ -56,7 +56,10 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 	}
 
 	const { imageUploader: { formDataFieldName } } = config;
-	app.post('/upload/image', uploadRateLimiterMiddleware, authMiddleware, (req, res) => {
+	app.post('/upload/image', (req, res, next) => {
+		if (config.server.rateLimiters.upload.enabled) return uploadRateLimiterMiddleware(req, res, next);
+		next();
+	}, authMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
 			if (err) return res.status(400).json({ success: false, error: err.message });
 			if (!files[formDataFieldName] || !files[formDataFieldName][0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
@@ -99,7 +102,10 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 	const publicPath = path.join(process.cwd(), 'public');
 	if (existsSync(publicPath)) app.use('/', express.static(publicPath));
 
-	app.get('/:id', viewRateLimiterMiddleware, (req, res) => {
+	app.get('/:id', (req, res, next) => {
+		if (config.server.rateLimiters.view.enabled) return viewRateLimiterMiddleware(req, res, next);
+		next();
+	}, (req, res) => {
 		let id = req.params.id;
 		if (id.split('.').length > 0) id = id.split('.')[0];
 
