@@ -79,4 +79,4 @@ Personally I use ShareX to take my screenshots, if this is your case you can sim
 
 ## Need some help?
 
-If you need help, I can help you just contact me on **Discord** or by **email**.
+If you need help, I can help you just contact me, my contact information is filled in the README of my profile.
