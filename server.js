@@ -19,7 +19,7 @@ import log from './utils/functions/log.js';
 dotenv.config({ path: '.env' });
 
 connectDb(config.mongodb.connectionOptions).then(() => {
-	log('MongoDB', 'Database connected successfully');
+	log('MongoDB', `Database is successfully connected on ${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}`);
 
 	const imgCache = new Map();
 
@@ -83,7 +83,7 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 
 				newFile.save().then(newImageFileData => {
 					addToCache(newImageFileData);
-					log('Server', `"${req.ipAddress.toString()}" uploaded "${file.originalFilename} (${newImageFileData.public_id})" ("${file.size}" bytes, req-id: "${req.id}")`);
+					log('Server', `${req.ipAddress} uploaded ${file.originalFilename} (file-size: ${file.size}B, public-id: ${newImageFileData.public_id}, req-id: ${req.id})`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.imageUploader.mimeTypesExtensions[file.mimetype]}` } });
 				}).catch(err => {
 					console.error(new Error('Error while saving image file data to database', { cause: err }));
@@ -110,7 +110,7 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 			}));
 			res.send(imageFileData.file_buffer);
 
-			log('Server', `"${req.ipAddress.toString()}" viewed "${imageFileData.public_id} (${imageFileData.file_original_name})" (loaded from cache: "${fromCache}", req-id: "${req.id}")`);
+			log('Server', `${req.ipAddress} viewed ${imageFileData.public_id} (from-cache: ${fromCache}, req-id: ${req.id})`);
 
 			imageFileData.views++;
 			imageFileData.last_viewed_by = req.ipAddress.toString();
@@ -134,7 +134,7 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 	});
 
 	app.listen(process.env.SERVER_PORT, process.env.SERVER_HOSTNAME, () => {
-		log('Server', `Server is running on "${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}"`);
+		log('Server', `Server is running on ${process.env.SERVER_HOSTNAME}:${process.env.SERVER_PORT}`);
 		if (config.server.startupMessage) console.log(config.server.startupMessage);
 	});
 }).catch(err => console.error(new Error('Error while initializing server', { cause: err })));

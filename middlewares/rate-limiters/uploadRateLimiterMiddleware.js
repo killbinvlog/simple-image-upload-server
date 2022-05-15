@@ -7,7 +7,7 @@ export default expressRateLimit({
 	max: config.server.rateLimiters.upload.max,
 	keyGenerator: req => req.ipAddress.toString(),
 	handler: (req, res) => {
-		log('Server Rate Limiter', `"${req.ipAddress.toString()}" tried to access "${req.protocol}://${req.get('host')}${req.path} [${req.method}]" but get rate limited on upload rate limiter (req-id: "${req.id}")`);
+		log('Server Rate Limiter', `${req.ipAddress} tried to access ${req.path} [${req.method}] but get rate limited on upload rate limiter (req-id: ${req.id})`);
 		res.status(429).json({ success: false, error: 'Too many requests.' });
 	},
 });
