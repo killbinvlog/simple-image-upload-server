@@ -11,9 +11,9 @@ import connectDb from './database/connectDb.js';
 import FileModel from './database/models/FileModel.js';
 import authMiddleware from './middlewares/authMiddleware.js';
 import initRequestMiddleware from './middlewares/initRequestMiddleware.js';
-import logRequestMiddleware from './middlewares/logRequestMiddleware.js';
 import uploadRateLimiterMiddleware from './middlewares/rate-limiters/uploadRateLimiterMiddleware.js';
 import viewRateLimiterMiddleware from './middlewares/rate-limiters/viewRateLimiterMiddleware.js';
+import requestLogMiddleware from './middlewares/requestLogMiddleware.js';
 import log from './utils/functions/log.js';
 
 dotenv.config({ path: '.env' });
@@ -35,7 +35,7 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 
 	const app = express();
 
-	app.use(helmet(), initRequestMiddleware, logRequestMiddleware);
+	app.use(helmet(), initRequestMiddleware, requestLogMiddleware);
 
 	const form = formidable({
 		allowEmptyFiles: false,
