@@ -43,7 +43,7 @@ Web server made with ExpressJS on NodeJS that allows to upload, store and get im
 #### Prerequisites
 
 - NodeJS v16.15.0 (this is the version I use but another one could work well) with npm
-- A running MongoDB server (you can get one for free at MongoDB Atlas => https://www.mongodb.com/cloud/atlas)
+- A running MongoDB server (you can get one for free at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas))
 
 #### Steps
 
