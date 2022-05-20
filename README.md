@@ -74,7 +74,7 @@ Personally I use ShareX to take my screenshots, if this is your case you can sim
 ### Configure the `ShareX.sxcu` file.
 
 1. Replace "https://www.example.com" with your own url.
-2. Replace "YOUR_SECRET" with the secret key that you can find in the `.env` file (`API_TOKEN` value).
+2. Replace "YOUR_SECRET_KEY" with the secret key that you can find in the `.env` file (`AUTH_SECRET_KEY` value).
 3. Replace the `Name` value if you want, you can put whatever you want.
 
 ## Need some help?
