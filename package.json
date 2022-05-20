@@ -6,7 +6,7 @@
   "type": "module",
   "keywords": [
     "nodejs",
-    "mongo",
+    "mongodb",
     "expressjs",
     "mongoosejs",
     "image-uploader",
