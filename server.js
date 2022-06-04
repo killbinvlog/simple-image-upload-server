@@ -62,8 +62,8 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 	}, authMiddleware, (req, res) => {
 		form.parse(req, (err, fields, files) => {
 			if (err) return res.status(400).json({ success: false, error: err.message });
-			if (!files[formDataFieldName] || !files[formDataFieldName][0]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
-			const file = files[formDataFieldName][0];
+			if (!files[formDataFieldName]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
+			const file = files[formDataFieldName];
 
 			const fileBuffer = readFileSync(file.filepath);
 			unlinkSync(file.filepath);
