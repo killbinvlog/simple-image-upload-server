@@ -50,7 +50,7 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 	form.setMaxListeners(0);
 
 	if (config.server.enableCheckRoute) {
-		app.get('/check', (req, res) => {
+		app.get('/check', (_req, res) => {
 			res.sendStatus(200);
 		});
 	}
@@ -60,8 +60,8 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 		if (config.server.rateLimiters.upload.enabled) return uploadRateLimiterMiddleware(req, res, next);
 		next();
 	}, authMiddleware, (req, res) => {
-		form.parse(req, (err, fields, files) => {
-			if (err) return res.status(400).json({ success: false, error: err.message });
+		form.parse(req, (parseErr, _fields, files) => {
+			if (parseErr) return res.status(400).json({ success: false, error: parseErr.message });
 			if (!files[formDataFieldName]) return res.status(400).json({ success: false, error: 'No file was uploaded or the file is incorrect.' });
 			const file = files[formDataFieldName];
 
@@ -88,12 +88,12 @@ connectDb(config.mongodb.connectionOptions).then(() => {
 					addToCache(newImageFileData);
 					log('Server', `${req.ipAddress} uploaded ${file.originalFilename} (file-size: ${file.size}B, public-id: ${newImageFileData.public_id}, req-id: ${req.id})`);
 					return res.status(200).json({ success: true, data: { already_exists: false, id: newImageFileData.public_id, id_with_extension: `${newImageFileData.public_id}.${config.imageUploader.mimeTypesExtensions[file.mimetype]}` } });
-				}).catch(err => {
-					console.error(new Error('Error while saving image file data to database', { cause: err }));
+				}).catch(dbErr => {
+					console.error(new Error('Error while saving image file data to database', { cause: dbErr }));
 					return res.status(500).json({ success: false, error: 'Internal server error.' });
 				});
-			}).catch(err => {
-				console.error(new Error('Error while getting image file data from database', { cause: err }));
+			}).catch(dbErr => {
+				console.error(new Error('Error while getting image file data from database', { cause: dbErr }));
 				return res.status(500).json({ success: false, error: 'Internal server error.' });
 			});
 		});
