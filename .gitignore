@@ -1,3 +1,11 @@
+# User-specific stuff
+.DS_Store
+**/.DS_Store
+
+# IDE settings
+.idea
+.vscode
+
 # Logs
 logs
 *.log

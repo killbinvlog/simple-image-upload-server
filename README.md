@@ -5,7 +5,7 @@ Web server made with ExpressJS on NodeJS that allows to upload, store and get im
 ## Table of contents
 
 - [How to start it?](#how-to-start-it)
-  - [With Docker](#with-docker-🐳-easiest-way)
+  - [With Docker](#with-docker--easiest-way=)
     - [Prerequisites](#prerequisites)
     - [Steps](#steps)
   - [Without Docker](#without-docker)
@@ -32,7 +32,7 @@ Web server made with ExpressJS on NodeJS that allows to upload, store and get im
 
 3. Configure the server as you want (optional but recommended).
 
-   > You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
+You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
 
 4. Open a terminal at the root of the project.
 
@@ -55,7 +55,7 @@ Web server made with ExpressJS on NodeJS that allows to upload, store and get im
 
 4. Configure the server as you want (optional but recommended).
 
-   > You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
+You just need to modify the `config.js` and `.env` files (almost every setting are described with comments in files).
 
 5. Open a terminal at the root of the project.
 
@@ -79,4 +79,4 @@ Personally I use ShareX to take my screenshots, if this is your case you can sim
 
 ## Need some help?
 
-If you need help, I can help you just contact me, [my contact information](https://github.com/killbinvlog#contact-me) is filled in the README of my profile.
+If you need help, I can help you just contact me, [my contact information](https://github.com/killbinvlog#contact-me) are filled in the README of my profile.
